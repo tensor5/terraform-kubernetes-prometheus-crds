@@ -2451,7 +2451,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                     "enforcedNamespaceLabel" = {
                       "description" = <<-EOT
                       EnforcedNamespaceLabel If set, a label will be added to 
-                       1. all user-metrics (created by `ServiceMonitor`, `PodMonitor` and `ProbeConfig` object) and 2. in all `PrometheusRule` objects (except the ones excluded in `prometheusRulesExcludedFromEnforce`) to    * alerting & recording rules and    * the metrics used in their expressions (`expr`). 
+                       1. all user-metrics (created by `ServiceMonitor`, `PodMonitor` and `Probe` objects) and 2. in all `PrometheusRule` objects (except the ones excluded in `prometheusRulesExcludedFromEnforce`) to    * alerting & recording rules and    * the metrics used in their expressions (`expr`). 
                        Label name is this field's value. Label value is the namespace of the created object (mentioned above).
                       EOT
                       "type"        = "string"
@@ -2482,7 +2482,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type"        = "string"
                     }
                     "ignoreNamespaceSelectors" = {
-                      "description" = "IgnoreNamespaceSelectors if set to true will ignore NamespaceSelector settings from the podmonitor and servicemonitor configs, and they will only discover endpoints within their current namespace.  Defaults to false."
+                      "description" = "IgnoreNamespaceSelectors if set to true will ignore NamespaceSelector settings from all PodMonitor, ServiceMonitor and Probe objects. They will only discover endpoints within their current namespace. Defaults to false."
                       "type"        = "boolean"
                     }
                     "image" = {
@@ -3664,11 +3664,11 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type"        = "object"
                     }
                     "overrideHonorLabels" = {
-                      "description" = "OverrideHonorLabels if set to true overrides all user configured honor_labels. If HonorLabels is set in ServiceMonitor or PodMonitor to true, this overrides honor_labels to false."
+                      "description" = "When true, Prometheus resolves label conflicts by renaming the labels in the scraped data to \"exported_<label value>\" for all targets created from service and pod monitors. Otherwise the HonorLabels field of the service or pod monitor applies."
                       "type"        = "boolean"
                     }
                     "overrideHonorTimestamps" = {
-                      "description" = "OverrideHonorTimestamps allows to globally enforce honoring timestamps in all scrape configs."
+                      "description" = "When true, Prometheus ignores the timestamps for all the targets created from service and pod monitors. Otherwise the HonorTimestamps field of the service or pod monitor applies."
                       "type"        = "boolean"
                     }
                     "paused" = {
@@ -3926,13 +3926,13 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type" = "object"
                     }
                     "queryLogFile" = {
-                      "description" = "QueryLogFile specifies the file to which PromQL queries are logged. Note that this location must be writable, and can be persisted using an attached volume. Alternatively, the location can be set to a stdout location such as `/dev/stdout` to log querie information to the default Prometheus log stream. This is only available in versions of Prometheus >= 2.16.0. For more details, see the Prometheus docs (https://prometheus.io/docs/guides/query-log/)"
+                      "description" = "QueryLogFile specifies the file to which PromQL queries are logged. If the filename has an empty path, e.g. 'query.log', prometheus-operator will mount the file into an emptyDir volume at `/var/log/prometheus`. If a full path is provided, e.g. /var/log/prometheus/query.log, you must mount a volume in the specified directory and it must be writable. This is because the prometheus container runs with a read-only root filesystem for security reasons. Alternatively, the location can be set to a stdout location such as `/dev/stdout` to log query information to the default Prometheus log stream. This is only available in versions of Prometheus >= 2.16.0. For more details, see the Prometheus docs (https://prometheus.io/docs/guides/query-log/)"
                       "type"        = "string"
                     }
                     "remoteRead" = {
-                      "description" = "If specified, the remote_read spec. This is an experimental feature, it may change in any upcoming release in a breaking way."
+                      "description" = "remoteRead is the list of remote read configurations."
                       "items" = {
-                        "description" = "RemoteReadSpec defines the remote_read configuration for prometheus."
+                        "description" = "RemoteReadSpec defines the configuration for Prometheus to read back samples from a remote endpoint."
                         "properties" = {
                           "authorization" = {
                             "description" = "Authorization section for remote read"
@@ -4033,7 +4033,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "type"        = "object"
                           }
                           "name" = {
-                            "description" = "The name of the remote read queue, must be unique if specified. The name is used in metrics and logging in order to differentiate read configurations.  Only valid in Prometheus versions 2.15.0 and newer."
+                            "description" = "The name of the remote read queue, it must be unique if specified. The name is used in metrics and logging in order to differentiate read configurations.  Only valid in Prometheus versions 2.15.0 and newer."
                             "type"        = "string"
                           }
                           "oauth2" = {
@@ -4136,7 +4136,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "type" = "object"
                           }
                           "proxyUrl" = {
-                            "description" = "Optional ProxyURL"
+                            "description" = "Optional ProxyURL."
                             "type"        = "string"
                           }
                           "readRecent" = {
@@ -4298,7 +4298,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "type" = "object"
                           }
                           "url" = {
-                            "description" = "The URL of the endpoint to send samples to."
+                            "description" = "The URL of the endpoint to query from."
                             "type"        = "string"
                           }
                         }
@@ -4310,9 +4310,9 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type" = "array"
                     }
                     "remoteWrite" = {
-                      "description" = "If specified, the remote_write spec. This is an experimental feature, it may change in any upcoming release in a breaking way."
+                      "description" = "remoteWrite is the list of remote write configurations."
                       "items" = {
-                        "description" = "RemoteWriteSpec defines the remote_write configuration for prometheus."
+                        "description" = "RemoteWriteSpec defines the configuration to write samples from Prometheus to a remote endpoint."
                         "properties" = {
                           "authorization" = {
                             "description" = "Authorization section for remote write"
@@ -4413,21 +4413,21 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "type"        = "object"
                           }
                           "metadataConfig" = {
-                            "description" = "MetadataConfig configures the sending of series metadata to remote storage."
+                            "description" = "MetadataConfig configures the sending of series metadata to the remote storage."
                             "properties" = {
                               "send" = {
-                                "description" = "Whether metric metadata is sent to remote storage or not."
+                                "description" = "Whether metric metadata is sent to the remote storage or not."
                                 "type"        = "boolean"
                               }
                               "sendInterval" = {
-                                "description" = "How frequently metric metadata is sent to remote storage."
+                                "description" = "How frequently metric metadata is sent to the remote storage."
                                 "type"        = "string"
                               }
                             }
                             "type" = "object"
                           }
                           "name" = {
-                            "description" = "The name of the remote write queue, must be unique if specified. The name is used in metrics and logging in order to differentiate queues. Only valid in Prometheus versions 2.15.0 and newer."
+                            "description" = "The name of the remote write queue, it must be unique if specified. The name is used in metrics and logging in order to differentiate queues. Only valid in Prometheus versions 2.15.0 and newer."
                             "type"        = "string"
                           }
                           "oauth2" = {
@@ -4530,7 +4530,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "type" = "object"
                           }
                           "proxyUrl" = {
-                            "description" = "Optional ProxyURL"
+                            "description" = "Optional ProxyURL."
                             "type"        = "string"
                           }
                           "queueConfig" = {
@@ -4829,7 +4829,9 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                 "sourceLabels" = {
                                   "description" = "The source labels select values from existing labels. Their content is concatenated using the configured separator and matched against the configured regular expression for the replace, keep, and drop actions."
                                   "items" = {
-                                    "type" = "string"
+                                    "description" = "LabelName is a valid Prometheus label name which may only contain ASCII letters, numbers, as well as underscores."
+                                    "pattern"     = "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                                    "type"        = "string"
                                   }
                                   "type" = "array"
                                 }
@@ -4898,7 +4900,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type" = "object"
                     }
                     "retention" = {
-                      "description" = "Time duration Prometheus shall retain data for. Default is '24h', and must match the regular expression `[0-9]+(ms|s|m|h|d|w|y)` (milliseconds seconds minutes hours days weeks years)."
+                      "description" = "Time duration Prometheus shall retain data for. Default is '24h' if retentionSize is not set, and must match the regular expression `[0-9]+(ms|s|m|h|d|w|y)` (milliseconds seconds minutes hours days weeks years)."
                       "type"        = "string"
                     }
                     "retentionSize" = {

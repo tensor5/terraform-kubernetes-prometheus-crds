@@ -203,7 +203,9 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                           "sourceLabels" = {
                             "description" = "The source labels select values from existing labels. Their content is concatenated using the configured separator and matched against the configured regular expression for the replace, keep, and drop actions."
                             "items" = {
-                              "type" = "string"
+                              "description" = "LabelName is a valid Prometheus label name which may only contain ASCII letters, numbers, as well as underscores."
+                              "pattern"     = "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                              "type"        = "string"
                             }
                             "type" = "array"
                           }
@@ -359,20 +361,20 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                       "type"        = "integer"
                     }
                     "targets" = {
-                      "description" = "Targets defines a set of static and/or dynamically discovered targets to be probed using the prober."
+                      "description" = "Targets defines a set of static or dynamically discovered targets to probe."
                       "properties" = {
                         "ingress" = {
-                          "description" = "Ingress defines the set of dynamically discovered ingress objects which hosts are considered for probing."
+                          "description" = "ingress defines the Ingress objects to probe and the relabeling configuration. If `staticConfig` is also defined, `staticConfig` takes precedence."
                           "properties" = {
                             "namespaceSelector" = {
-                              "description" = "Select Ingress objects by namespace."
+                              "description" = "From which namespaces to select Ingress objects."
                               "properties" = {
                                 "any" = {
                                   "description" = "Boolean describing whether all namespaces are selected in contrast to a list restricting them."
                                   "type"        = "boolean"
                                 }
                                 "matchNames" = {
-                                  "description" = "List of namespace names."
+                                  "description" = "List of namespace names to select from."
                                   "items" = {
                                     "type" = "string"
                                   }
@@ -382,7 +384,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "type" = "object"
                             }
                             "relabelingConfigs" = {
-                              "description" = "RelabelConfigs to apply to samples before ingestion. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config"
+                              "description" = "RelabelConfigs to apply to the label set of the target before it gets scraped. The original ingress address is available via the `__tmp_prometheus_ingress_address` label. It can be used to customize the probed URL. The original scrape job's name is available via the `__tmp_prometheus_job_name` label. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config"
                               "items" = {
                                 "description" = "RelabelConfig allows dynamic rewriting of the label set, being applied to samples before ingestion. It defines `<metric_relabel_configs>`-section of Prometheus configuration. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs"
                                 "properties" = {
@@ -420,7 +422,9 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                                   "sourceLabels" = {
                                     "description" = "The source labels select values from existing labels. Their content is concatenated using the configured separator and matched against the configured regular expression for the replace, keep, and drop actions."
                                     "items" = {
-                                      "type" = "string"
+                                      "description" = "LabelName is a valid Prometheus label name which may only contain ASCII letters, numbers, as well as underscores."
+                                      "pattern"     = "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                                      "type"        = "string"
                                     }
                                     "type" = "array"
                                   }
@@ -434,7 +438,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "type" = "array"
                             }
                             "selector" = {
-                              "description" = "Select Ingress objects by labels."
+                              "description" = "Selector to select the Ingress objects."
                               "properties" = {
                                 "matchExpressions" = {
                                   "description" = "matchExpressions is a list of label selector requirements. The requirements are ANDed."
@@ -479,7 +483,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                           "type" = "object"
                         }
                         "staticConfig" = {
-                          "description" = "StaticConfig defines static targets which are considers for probing. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#static_config."
+                          "description" = "staticConfig defines the static list of targets to probe and the relabeling configuration. If `ingress` is also defined, `staticConfig` takes precedence. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#static_config."
                           "properties" = {
                             "labels" = {
                               "additionalProperties" = {
@@ -489,7 +493,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "type"        = "object"
                             }
                             "relabelingConfigs" = {
-                              "description" = "RelabelConfigs to apply to samples before ingestion. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config"
+                              "description" = "RelabelConfigs to apply to the label set of the targets before it gets scraped. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config"
                               "items" = {
                                 "description" = "RelabelConfig allows dynamic rewriting of the label set, being applied to samples before ingestion. It defines `<metric_relabel_configs>`-section of Prometheus configuration. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs"
                                 "properties" = {
@@ -527,7 +531,9 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                                   "sourceLabels" = {
                                     "description" = "The source labels select values from existing labels. Their content is concatenated using the configured separator and matched against the configured regular expression for the replace, keep, and drop actions."
                                     "items" = {
-                                      "type" = "string"
+                                      "description" = "LabelName is a valid Prometheus label name which may only contain ASCII letters, numbers, as well as underscores."
+                                      "pattern"     = "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                                      "type"        = "string"
                                     }
                                     "type" = "array"
                                   }
@@ -541,7 +547,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "type" = "array"
                             }
                             "static" = {
-                              "description" = "Targets is a list of URLs to probe using the configured prober."
+                              "description" = "The list of hosts to probe."
                               "items" = {
                                 "type" = "string"
                               }

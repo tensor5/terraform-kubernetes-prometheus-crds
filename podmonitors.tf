@@ -68,7 +68,7 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                           "type"        = "boolean"
                         }
                         "matchNames" = {
-                          "description" = "List of namespace names."
+                          "description" = "List of namespace names to select from."
                           "items" = {
                             "type" = "string"
                           }
@@ -182,6 +182,10 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                             ]
                             "type" = "object"
                           }
+                          "followRedirects" = {
+                            "description" = "FollowRedirects configures whether scrape requests follow HTTP 3xx redirects."
+                            "type"        = "boolean"
+                          }
                           "honorLabels" = {
                             "description" = "HonorLabels chooses the metric's labels on collisions with target labels."
                             "type"        = "boolean"
@@ -233,7 +237,9 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                 "sourceLabels" = {
                                   "description" = "The source labels select values from existing labels. Their content is concatenated using the configured separator and matched against the configured regular expression for the replace, keep, and drop actions."
                                   "items" = {
-                                    "type" = "string"
+                                    "description" = "LabelName is a valid Prometheus label name which may only contain ASCII letters, numbers, as well as underscores."
+                                    "pattern"     = "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                                    "type"        = "string"
                                   }
                                   "type" = "array"
                                 }
@@ -368,7 +374,7 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                             "type"        = "string"
                           }
                           "relabelings" = {
-                            "description" = "RelabelConfigs to apply to samples before scraping. Prometheus Operator automatically adds relabelings for a few standard Kubernetes fields and replaces original scrape job name with __tmp_prometheus_job_name. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config"
+                            "description" = "RelabelConfigs to apply to samples before scraping. Prometheus Operator automatically adds relabelings for a few standard Kubernetes fields. The original scrape job's name is available via the `__tmp_prometheus_job_name` label. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config"
                             "items" = {
                               "description" = "RelabelConfig allows dynamic rewriting of the label set, being applied to samples before ingestion. It defines `<metric_relabel_configs>`-section of Prometheus configuration. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs"
                               "properties" = {
@@ -406,7 +412,9 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                 "sourceLabels" = {
                                   "description" = "The source labels select values from existing labels. Their content is concatenated using the configured separator and matched against the configured regular expression for the replace, keep, and drop actions."
                                   "items" = {
-                                    "type" = "string"
+                                    "description" = "LabelName is a valid Prometheus label name which may only contain ASCII letters, numbers, as well as underscores."
+                                    "pattern"     = "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                                    "type"        = "string"
                                   }
                                   "type" = "array"
                                 }
