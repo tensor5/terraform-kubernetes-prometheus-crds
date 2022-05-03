@@ -4,7 +4,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
     "kind"       = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.6.2"
+        "controller-gen.kubebuilder.io/version" = "v0.8.0"
       }
       "name" = "thanosrulers.monitoring.coreos.com"
     }
@@ -17,6 +17,9 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
         "kind"     = "ThanosRuler"
         "listKind" = "ThanosRulerList"
         "plural"   = "thanosrulers"
+        "shortNames" = [
+          "ruler",
+        ]
         "singular" = "thanosruler"
       }
       "scope" = "Namespaced"
@@ -1908,6 +1911,47 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                       "description" = "Interval between consecutive evaluations."
                       "type"        = "string"
                     }
+                    "excludedFromEnforcement" = {
+                      "description" = "List of references to PrometheusRule objects to be excluded from enforcing a namespace label of origin. Applies only if enforcedNamespaceLabel set to true."
+                      "items" = {
+                        "description" = "ObjectReference references a PodMonitor, ServiceMonitor, Probe or PrometheusRule object."
+                        "properties" = {
+                          "group" = {
+                            "default"     = "monitoring.coreos.com"
+                            "description" = "Group of the referent. When not specified, it defaults to `monitoring.coreos.com`"
+                            "enum" = [
+                              "monitoring.coreos.com",
+                            ]
+                            "type" = "string"
+                          }
+                          "name" = {
+                            "description" = "Name of the referent. When not set, all resources are matched."
+                            "type"        = "string"
+                          }
+                          "namespace" = {
+                            "description" = "Namespace of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/"
+                            "minLength"   = 1
+                            "type"        = "string"
+                          }
+                          "resource" = {
+                            "description" = "Resource of the referent."
+                            "enum" = [
+                              "prometheusrules",
+                              "servicemonitors",
+                              "podmonitors",
+                              "probes",
+                            ]
+                            "type" = "string"
+                          }
+                        }
+                        "required" = [
+                          "namespace",
+                          "resource",
+                        ]
+                        "type" = "object"
+                      }
+                      "type" = "array"
+                    }
                     "externalPrefix" = {
                       "description" = "The external URL the Thanos Ruler instances will be available under. This is necessary to generate correct URLs. This is necessary if Thanos Ruler is not served from root of a DNS name."
                       "type"        = "string"
@@ -3222,11 +3266,23 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                     }
                     "logFormat" = {
                       "description" = "Log format for ThanosRuler to be configured with."
-                      "type"        = "string"
+                      "enum" = [
+                        "",
+                        "logfmt",
+                        "json",
+                      ]
+                      "type" = "string"
                     }
                     "logLevel" = {
                       "description" = "Log level for ThanosRuler to be configured with."
-                      "type"        = "string"
+                      "enum" = [
+                        "",
+                        "debug",
+                        "info",
+                        "warn",
+                        "error",
+                      ]
+                      "type" = "string"
                     }
                     "minReadySeconds" = {
                       "description" = "Minimum number of seconds for which a newly created pod should be ready without any of its container crashing for it to be considered available. Defaults to 0 (pod will be considered available as soon as it is ready) This is an alpha field and requires enabling StatefulSetMinReadySeconds feature gate."
@@ -3302,7 +3358,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                       "type"        = "string"
                     }
                     "prometheusRulesExcludedFromEnforce" = {
-                      "description" = "PrometheusRulesExcludedFromEnforce - list of Prometheus rules to be excluded from enforcing of adding namespace labels. Works only if enforcedNamespaceLabel set to true. Make sure both ruleNamespace and ruleName are set for each pair"
+                      "description" = "PrometheusRulesExcludedFromEnforce - list of Prometheus rules to be excluded from enforcing of adding namespace labels. Works only if enforcedNamespaceLabel set to true. Make sure both ruleNamespace and ruleName are set for each pair Deprecated: use excludedFromEnforcement instead."
                       "items" = {
                         "description" = "PrometheusRuleExcludeConfig enables users to configure excluded PrometheusRule names and their namespaces to be ignored while enforcing namespace label for alerts and metrics."
                         "properties" = {
@@ -3695,7 +3751,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                                       "type" = "object"
                                     }
                                     "dataSourceRef" = {
-                                      "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef   allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef   preserves all values, and generates an error if a disallowed value is   specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
+                                      "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef preserves all values, and generates an error if a disallowed value is specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
                                       "properties" = {
                                         "apiGroup" = {
                                           "description" = "APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required."
@@ -3888,7 +3944,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                                   "type" = "object"
                                 }
                                 "dataSourceRef" = {
-                                  "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef   allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef   preserves all values, and generates an error if a disallowed value is   specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
+                                  "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef preserves all values, and generates an error if a disallowed value is specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
                                   "properties" = {
                                     "apiGroup" = {
                                       "description" = "APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required."
@@ -4190,7 +4246,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                             "type"        = "string"
                           }
                           "whenUnsatisfiable" = {
-                            "description" = "WhenUnsatisfiable indicates how to deal with a pod if it doesn't satisfy the spread constraint. - DoNotSchedule (default) tells the scheduler not to schedule it. - ScheduleAnyway tells the scheduler to schedule the pod in any location,   but giving higher precedence to topologies that would help reduce the   skew. A constraint is considered \"Unsatisfiable\" for an incoming pod if and only if every possible node assignment for that pod would violate \"MaxSkew\" on some topology. For example, in a 3-zone cluster, MaxSkew is set to 1, and pods with the same labelSelector spread as 3/1/1: | zone1 | zone2 | zone3 | | P P P |   P   |   P   | If WhenUnsatisfiable is set to DoNotSchedule, incoming pod can only be scheduled to zone2(zone3) to become 3/2/1(3/1/2) as ActualSkew(2-1) on zone2(zone3) satisfies MaxSkew(1). In other words, the cluster can still be imbalanced, but scheduler won't make it *more* imbalanced. It's a required field."
+                            "description" = "WhenUnsatisfiable indicates how to deal with a pod if it doesn't satisfy the spread constraint. - DoNotSchedule (default) tells the scheduler not to schedule it. - ScheduleAnyway tells the scheduler to schedule the pod in any location, but giving higher precedence to topologies that would help reduce the skew. A constraint is considered \"Unsatisfiable\" for an incoming pod if and only if every possible node assignment for that pod would violate \"MaxSkew\" on some topology. For example, in a 3-zone cluster, MaxSkew is set to 1, and pods with the same labelSelector spread as 3/1/1: | zone1 | zone2 | zone3 | | P P P |   P   |   P   | If WhenUnsatisfiable is set to DoNotSchedule, incoming pod can only be scheduled to zone2(zone3) to become 3/2/1(3/1/2) as ActualSkew(2-1) on zone2(zone3) satisfies MaxSkew(1). In other words, the cluster can still be imbalanced, but scheduler won't make it *more* imbalanced. It's a required field."
                             "type"        = "string"
                           }
                         }
@@ -4574,7 +4630,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                           "ephemeral" = {
                             "description" = <<-EOT
                             Ephemeral represents a volume that is handled by a cluster storage driver. The volume's lifecycle is tied to the pod that defines it - it will be created before the pod starts, and deleted when the pod is removed. 
-                             Use this if: a) the volume is only needed while the pod runs, b) features of normal volumes like restoring from snapshot or capacity    tracking are needed, c) the storage driver is specified through a storage class, and d) the storage driver supports dynamic volume provisioning through    a PersistentVolumeClaim (see EphemeralVolumeSource for more    information on the connection between this volume type    and PersistentVolumeClaim). 
+                             Use this if: a) the volume is only needed while the pod runs, b) features of normal volumes like restoring from snapshot or capacity tracking are needed, c) the storage driver is specified through a storage class, and d) the storage driver supports dynamic volume provisioning through a PersistentVolumeClaim (see EphemeralVolumeSource for more information on the connection between this volume type and PersistentVolumeClaim). 
                              Use PersistentVolumeClaim or one of the vendor-specific APIs for volumes that persist for longer than the lifecycle of an individual pod. 
                              Use CSI for light-weight local ephemeral volumes if the CSI driver is meant to be used that way - see the documentation of the driver for more information. 
                              A pod can use both types of ephemeral volumes and persistent volumes at the same time.
@@ -4625,7 +4681,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                                         "type" = "object"
                                       }
                                       "dataSourceRef" = {
-                                        "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef   allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef   preserves all values, and generates an error if a disallowed value is   specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
+                                        "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef preserves all values, and generates an error if a disallowed value is specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
                                         "properties" = {
                                           "apiGroup" = {
                                             "description" = "APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required."

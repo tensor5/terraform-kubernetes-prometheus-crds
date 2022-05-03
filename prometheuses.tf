@@ -4,7 +4,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
     "kind"       = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.6.2"
+        "controller-gen.kubebuilder.io/version" = "v0.8.0"
       }
       "name" = "prometheuses.monitoring.coreos.com"
     }
@@ -17,6 +17,9 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
         "kind"     = "Prometheus"
         "listKind" = "PrometheusList"
         "plural"   = "prometheuses"
+        "shortNames" = [
+          "prom",
+        ]
         "singular" = "prometheus"
       }
       "scope" = "Namespaced"
@@ -2429,8 +2432,13 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       }
                       "type" = "array"
                     }
+                    "enableRemoteWriteReceiver" = {
+                      "description" = "Enable Prometheus to be used as a receiver for the Prometheus remote write protocol. Defaults to the value of `false`. WARNING: This is not considered an efficient way of ingesting samples. Use it with caution for specific low-volume use cases. It is not suitable for replacing the ingestion via scraping and turning Prometheus into a push-based metrics collection system. For more information see https://prometheus.io/docs/prometheus/latest/querying/api/#remote-write-receiver Only valid in Prometheus versions 2.33.0 and newer."
+                      "type"        = "boolean"
+                    }
                     "enforcedBodySizeLimit" = {
                       "description" = "EnforcedBodySizeLimit defines the maximum size of uncompressed response body that will be accepted by Prometheus. Targets responding with a body larger than this many bytes will cause the scrape to fail. Example: 100MB. If defined, the limit will apply to all service/pod monitors and probes. This is an experimental feature, this behaviour could change or be removed in the future. Only valid in Prometheus versions 2.28.0 and newer."
+                      "pattern"     = "(^0|([0-9]*[.])?[0-9]+((K|M|G|T|E|P)i?)?B)$"
                       "type"        = "string"
                     }
                     "enforcedLabelLimit" = {
@@ -2451,7 +2459,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                     "enforcedNamespaceLabel" = {
                       "description" = <<-EOT
                       EnforcedNamespaceLabel If set, a label will be added to 
-                       1. all user-metrics (created by `ServiceMonitor`, `PodMonitor` and `Probe` objects) and 2. in all `PrometheusRule` objects (except the ones excluded in `prometheusRulesExcludedFromEnforce`) to    * alerting & recording rules and    * the metrics used in their expressions (`expr`). 
+                       1. all user-metrics (created by `ServiceMonitor`, `PodMonitor` and `Probe` objects) and 2. in all `PrometheusRule` objects (except the ones excluded in `prometheusRulesExcludedFromEnforce`) to * alerting & recording rules and * the metrics used in their expressions (`expr`). 
                        Label name is this field's value. Label value is the namespace of the created object (mentioned above).
                       EOT
                       "type"        = "string"
@@ -2467,8 +2475,51 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type"        = "integer"
                     }
                     "evaluationInterval" = {
-                      "description" = "Interval between consecutive evaluations. Default: `1m`"
+                      "default"     = "30s"
+                      "description" = "Interval between consecutive evaluations. Default: `30s`"
+                      "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                       "type"        = "string"
+                    }
+                    "excludedFromEnforcement" = {
+                      "description" = "List of references to PodMonitor, ServiceMonitor, Probe and PrometheusRule objects to be excluded from enforcing a namespace label of origin. Applies only if enforcedNamespaceLabel set to true."
+                      "items" = {
+                        "description" = "ObjectReference references a PodMonitor, ServiceMonitor, Probe or PrometheusRule object."
+                        "properties" = {
+                          "group" = {
+                            "default"     = "monitoring.coreos.com"
+                            "description" = "Group of the referent. When not specified, it defaults to `monitoring.coreos.com`"
+                            "enum" = [
+                              "monitoring.coreos.com",
+                            ]
+                            "type" = "string"
+                          }
+                          "name" = {
+                            "description" = "Name of the referent. When not set, all resources are matched."
+                            "type"        = "string"
+                          }
+                          "namespace" = {
+                            "description" = "Namespace of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/"
+                            "minLength"   = 1
+                            "type"        = "string"
+                          }
+                          "resource" = {
+                            "description" = "Resource of the referent."
+                            "enum" = [
+                              "prometheusrules",
+                              "servicemonitors",
+                              "podmonitors",
+                              "probes",
+                            ]
+                            "type" = "string"
+                          }
+                        }
+                        "required" = [
+                          "namespace",
+                          "resource",
+                        ]
+                        "type" = "object"
+                      }
+                      "type" = "array"
                     }
                     "externalLabels" = {
                       "additionalProperties" = {
@@ -3645,11 +3696,23 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                     }
                     "logFormat" = {
                       "description" = "Log format for Prometheus to be configured with."
-                      "type"        = "string"
+                      "enum" = [
+                        "",
+                        "logfmt",
+                        "json",
+                      ]
+                      "type" = "string"
                     }
                     "logLevel" = {
                       "description" = "Log level for Prometheus to be configured with."
-                      "type"        = "string"
+                      "enum" = [
+                        "",
+                        "debug",
+                        "info",
+                        "warn",
+                        "error",
+                      ]
+                      "type" = "string"
                     }
                     "minReadySeconds" = {
                       "description" = "Minimum number of seconds for which a newly created pod should be ready without any of its container crashing for it to be considered available. Defaults to 0 (pod will be considered available as soon as it is ready) This is an alpha field and requires enabling StatefulSetMinReadySeconds feature gate."
@@ -3880,7 +3943,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type"        = "string"
                     }
                     "prometheusRulesExcludedFromEnforce" = {
-                      "description" = "PrometheusRulesExcludedFromEnforce - list of prometheus rules to be excluded from enforcing of adding namespace labels. Works only if enforcedNamespaceLabel set to true. Make sure both ruleNamespace and ruleName are set for each pair"
+                      "description" = "PrometheusRulesExcludedFromEnforce - list of prometheus rules to be excluded from enforcing of adding namespace labels. Works only if enforcedNamespaceLabel set to true. Make sure both ruleNamespace and ruleName are set for each pair. Deprecated: use excludedFromEnforcement instead."
                       "items" = {
                         "description" = "PrometheusRuleExcludeConfig enables users to configure excluded PrometheusRule names and their namespaces to be ignored while enforcing namespace label for alerts and metrics."
                         "properties" = {
@@ -3920,6 +3983,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                         }
                         "timeout" = {
                           "description" = "Maximum time a query may take before being aborted."
+                          "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                           "type"        = "string"
                         }
                       }
@@ -4145,6 +4209,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                           }
                           "remoteTimeout" = {
                             "description" = "Timeout for requests to the remote read endpoint."
+                            "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                             "type"        = "string"
                           }
                           "requiredMatchers" = {
@@ -4421,6 +4486,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                               }
                               "sendInterval" = {
                                 "description" = "How frequently metric metadata is sent to the remote storage."
+                                "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                                 "type"        = "string"
                               }
                             }
@@ -4577,6 +4643,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                           }
                           "remoteTimeout" = {
                             "description" = "Timeout for requests to the remote write endpoint."
+                            "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                             "type"        = "string"
                           }
                           "sendExemplars" = {
@@ -4901,10 +4968,12 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                     }
                     "retention" = {
                       "description" = "Time duration Prometheus shall retain data for. Default is '24h' if retentionSize is not set, and must match the regular expression `[0-9]+(ms|s|m|h|d|w|y)` (milliseconds seconds minutes hours days weeks years)."
+                      "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                       "type"        = "string"
                     }
                     "retentionSize" = {
-                      "description" = "Maximum amount of disk space used by blocks. Supported units: B, KB, MB, GB, TB, PB, EB. Ex: `512MB`."
+                      "description" = "Maximum amount of disk space used by blocks."
+                      "pattern"     = "(^0|([0-9]*[.])?[0-9]+((K|M|G|T|E|P)i?)?B)$"
                       "type"        = "string"
                     }
                     "routePrefix" = {
@@ -5020,11 +5089,14 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type" = "object"
                     }
                     "scrapeInterval" = {
-                      "description" = "Interval between consecutive scrapes. Default: `1m`"
+                      "default"     = "30s"
+                      "description" = "Interval between consecutive scrapes. Default: `30s`"
+                      "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                       "type"        = "string"
                     }
                     "scrapeTimeout" = {
                       "description" = "Number of seconds to wait for target to respond before erroring."
+                      "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                       "type"        = "string"
                     }
                     "secrets" = {
@@ -5336,7 +5408,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                       "type" = "object"
                                     }
                                     "dataSourceRef" = {
-                                      "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef   allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef   preserves all values, and generates an error if a disallowed value is   specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
+                                      "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef preserves all values, and generates an error if a disallowed value is specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
                                       "properties" = {
                                         "apiGroup" = {
                                           "description" = "APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required."
@@ -5529,7 +5601,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                   "type" = "object"
                                 }
                                 "dataSourceRef" = {
-                                  "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef   allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef   preserves all values, and generates an error if a disallowed value is   specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
+                                  "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef preserves all values, and generates an error if a disallowed value is specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
                                   "properties" = {
                                     "apiGroup" = {
                                       "description" = "APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required."
@@ -5911,11 +5983,23 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                         }
                         "logFormat" = {
                           "description" = "LogFormat for Thanos sidecar to be configured with."
-                          "type"        = "string"
+                          "enum" = [
+                            "",
+                            "logfmt",
+                            "json",
+                          ]
+                          "type" = "string"
                         }
                         "logLevel" = {
                           "description" = "LogLevel for Thanos sidecar to be configured with."
-                          "type"        = "string"
+                          "enum" = [
+                            "",
+                            "debug",
+                            "info",
+                            "warn",
+                            "error",
+                          ]
+                          "type" = "string"
                         }
                         "minTime" = {
                           "description" = "MinTime for Thanos sidecar to be configured with. Option can be a constant time in RFC3339 format or time duration relative to current time, such as -1d or 2h45m. Valid duration units are ms, s, m, h, d, w, y."
@@ -5948,6 +6032,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                         }
                         "readyTimeout" = {
                           "description" = "ReadyTimeout is the maximum time Thanos sidecar will wait for Prometheus to start. Eg 10m"
+                          "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                           "type"        = "string"
                         }
                         "resources" = {
@@ -6154,7 +6239,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "type"        = "string"
                           }
                           "whenUnsatisfiable" = {
-                            "description" = "WhenUnsatisfiable indicates how to deal with a pod if it doesn't satisfy the spread constraint. - DoNotSchedule (default) tells the scheduler not to schedule it. - ScheduleAnyway tells the scheduler to schedule the pod in any location,   but giving higher precedence to topologies that would help reduce the   skew. A constraint is considered \"Unsatisfiable\" for an incoming pod if and only if every possible node assignment for that pod would violate \"MaxSkew\" on some topology. For example, in a 3-zone cluster, MaxSkew is set to 1, and pods with the same labelSelector spread as 3/1/1: | zone1 | zone2 | zone3 | | P P P |   P   |   P   | If WhenUnsatisfiable is set to DoNotSchedule, incoming pod can only be scheduled to zone2(zone3) to become 3/2/1(3/1/2) as ActualSkew(2-1) on zone2(zone3) satisfies MaxSkew(1). In other words, the cluster can still be imbalanced, but scheduler won't make it *more* imbalanced. It's a required field."
+                            "description" = "WhenUnsatisfiable indicates how to deal with a pod if it doesn't satisfy the spread constraint. - DoNotSchedule (default) tells the scheduler not to schedule it. - ScheduleAnyway tells the scheduler to schedule the pod in any location, but giving higher precedence to topologies that would help reduce the skew. A constraint is considered \"Unsatisfiable\" for an incoming pod if and only if every possible node assignment for that pod would violate \"MaxSkew\" on some topology. For example, in a 3-zone cluster, MaxSkew is set to 1, and pods with the same labelSelector spread as 3/1/1: | zone1 | zone2 | zone3 | | P P P |   P   |   P   | If WhenUnsatisfiable is set to DoNotSchedule, incoming pod can only be scheduled to zone2(zone3) to become 3/2/1(3/1/2) as ActualSkew(2-1) on zone2(zone3) satisfies MaxSkew(1). In other words, the cluster can still be imbalanced, but scheduler won't make it *more* imbalanced. It's a required field."
                             "type"        = "string"
                           }
                         }
@@ -6559,7 +6644,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                           "ephemeral" = {
                             "description" = <<-EOT
                             Ephemeral represents a volume that is handled by a cluster storage driver. The volume's lifecycle is tied to the pod that defines it - it will be created before the pod starts, and deleted when the pod is removed. 
-                             Use this if: a) the volume is only needed while the pod runs, b) features of normal volumes like restoring from snapshot or capacity    tracking are needed, c) the storage driver is specified through a storage class, and d) the storage driver supports dynamic volume provisioning through    a PersistentVolumeClaim (see EphemeralVolumeSource for more    information on the connection between this volume type    and PersistentVolumeClaim). 
+                             Use this if: a) the volume is only needed while the pod runs, b) features of normal volumes like restoring from snapshot or capacity tracking are needed, c) the storage driver is specified through a storage class, and d) the storage driver supports dynamic volume provisioning through a PersistentVolumeClaim (see EphemeralVolumeSource for more information on the connection between this volume type and PersistentVolumeClaim). 
                              Use PersistentVolumeClaim or one of the vendor-specific APIs for volumes that persist for longer than the lifecycle of an individual pod. 
                              Use CSI for light-weight local ephemeral volumes if the CSI driver is meant to be used that way - see the documentation of the driver for more information. 
                              A pod can use both types of ephemeral volumes and persistent volumes at the same time.
@@ -6610,7 +6695,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                         "type" = "object"
                                       }
                                       "dataSourceRef" = {
-                                        "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef   allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef   preserves all values, and generates an error if a disallowed value is   specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
+                                        "description" = "Specifies the object from which to populate the volume with data, if a non-empty volume is desired. This may be any local object from a non-empty API group (non core object) or a PersistentVolumeClaim object. When this field is specified, volume binding will only succeed if the type of the specified object matches some installed volume populator or dynamic provisioner. This field will replace the functionality of the DataSource field and as such if both fields are non-empty, they must have the same value. For backwards compatibility, both fields (DataSource and DataSourceRef) will be set to the same value automatically if one of them is empty and the other is non-empty. There are two important differences between DataSource and DataSourceRef: * While DataSource only allows two specific types of objects, DataSourceRef allows any non-core object, as well as PersistentVolumeClaim objects. * While DataSource ignores disallowed values (dropping them), DataSourceRef preserves all values, and generates an error if a disallowed value is specified. (Alpha) Using this field requires the AnyVolumeDataSource feature gate to be enabled."
                                         "properties" = {
                                           "apiGroup" = {
                                             "description" = "APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required."
@@ -7680,12 +7765,48 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                   "type" = "object"
                 }
                 "status" = {
-                  "description" = "Most recent observed status of the Prometheus cluster. Read-only. Not included when requesting from the apiserver, only from the Prometheus Operator API itself. More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status"
+                  "description" = "Most recent observed status of the Prometheus cluster. Read-only. More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status"
                   "properties" = {
                     "availableReplicas" = {
                       "description" = "Total number of available pods (ready for at least minReadySeconds) targeted by this Prometheus deployment."
                       "format"      = "int32"
                       "type"        = "integer"
+                    }
+                    "conditions" = {
+                      "description" = "The current state of the Prometheus deployment."
+                      "items" = {
+                        "description" = "PrometheusCondition represents the state of the resources associated with the Prometheus resource."
+                        "properties" = {
+                          "lastTransitionTime" = {
+                            "description" = "lastTransitionTime is the time of the last update to the current status property."
+                            "format"      = "date-time"
+                            "type"        = "string"
+                          }
+                          "message" = {
+                            "description" = "Human-readable message indicating details for the condition's last transition."
+                            "type"        = "string"
+                          }
+                          "reason" = {
+                            "description" = "Reason for the condition's last transition."
+                            "type"        = "string"
+                          }
+                          "status" = {
+                            "description" = "status of the condition."
+                            "type"        = "string"
+                          }
+                          "type" = {
+                            "description" = "Type of the condition being reported."
+                            "type"        = "string"
+                          }
+                        }
+                        "required" = [
+                          "lastTransitionTime",
+                          "status",
+                          "type",
+                        ]
+                        "type" = "object"
+                      }
+                      "type" = "array"
                     }
                     "paused" = {
                       "description" = "Represents whether any actions on the underlying managed objects are being performed. Only delete actions will be performed."
@@ -7695,6 +7816,46 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "description" = "Total number of non-terminated pods targeted by this Prometheus deployment (their labels match the selector)."
                       "format"      = "int32"
                       "type"        = "integer"
+                    }
+                    "shardStatuses" = {
+                      "description" = "The list has one entry per shard. Each entry provides a summary of the shard status."
+                      "items" = {
+                        "properties" = {
+                          "availableReplicas" = {
+                            "description" = "Total number of available pods (ready for at least minReadySeconds) targeted by this shard."
+                            "format"      = "int32"
+                            "type"        = "integer"
+                          }
+                          "replicas" = {
+                            "description" = "Total number of pods targeted by this shard."
+                            "format"      = "int32"
+                            "type"        = "integer"
+                          }
+                          "shardID" = {
+                            "description" = "Identifier of the shard."
+                            "type"        = "string"
+                          }
+                          "unavailableReplicas" = {
+                            "description" = "Total number of unavailable pods targeted by this shard."
+                            "format"      = "int32"
+                            "type"        = "integer"
+                          }
+                          "updatedReplicas" = {
+                            "description" = "Total number of non-terminated pods targeted by this shard that have the desired spec."
+                            "format"      = "int32"
+                            "type"        = "integer"
+                          }
+                        }
+                        "required" = [
+                          "availableReplicas",
+                          "replicas",
+                          "shardID",
+                          "unavailableReplicas",
+                          "updatedReplicas",
+                        ]
+                        "type" = "object"
+                      }
+                      "type" = "array"
                     }
                     "unavailableReplicas" = {
                       "description" = "Total number of unavailable pods targeted by this Prometheus deployment."
@@ -7723,9 +7884,11 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
               "type" = "object"
             }
           }
-          "served"       = true
-          "storage"      = true
-          "subresources" = {}
+          "served"  = true
+          "storage" = true
+          "subresources" = {
+            "status" = {}
+          }
         },
       ]
     }

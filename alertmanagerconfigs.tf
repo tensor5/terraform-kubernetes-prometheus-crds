@@ -4,7 +4,7 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagerconfigs_mon
     "kind"       = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.6.2"
+        "controller-gen.kubebuilder.io/version" = "v0.8.0"
       }
       "name" = "alertmanagerconfigs.monitoring.coreos.com"
     }
@@ -17,6 +17,9 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagerconfigs_mon
         "kind"     = "AlertmanagerConfig"
         "listKind" = "AlertmanagerConfigList"
         "plural"   = "alertmanagerconfigs"
+        "shortNames" = [
+          "amcfg",
+        ]
         "singular" = "alertmanagerconfig"
       }
       "scope" = "Namespaced"
@@ -484,6 +487,10 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagerconfigs_mon
                             "items" = {
                               "description" = "OpsGenieConfig configures notifications via OpsGenie. See https://prometheus.io/docs/alerting/latest/configuration/#opsgenie_config"
                               "properties" = {
+                                "actions" = {
+                                  "description" = "Comma separated list of actions that will be available for the alert."
+                                  "type"        = "string"
+                                }
                                 "apiKey" = {
                                   "description" = "The secret's key that contains the OpsGenie API key. The secret needs to be in the same namespace as the AlertmanagerConfig object and accessible by the Prometheus Operator."
                                   "properties" = {
@@ -535,6 +542,10 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagerconfigs_mon
                                     "type" = "object"
                                   }
                                   "type" = "array"
+                                }
+                                "entity" = {
+                                  "description" = "Optional field that can be used to specify which domain alert is related to."
+                                  "type"        = "string"
                                 }
                                 "httpConfig" = {
                                   "description" = "HTTP client configuration."

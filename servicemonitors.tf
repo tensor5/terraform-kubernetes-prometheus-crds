@@ -4,7 +4,7 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
     "kind"       = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.6.2"
+        "controller-gen.kubebuilder.io/version" = "v0.8.0"
       }
       "name" = "servicemonitors.monitoring.coreos.com"
     }
@@ -17,6 +17,9 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
         "kind"     = "ServiceMonitor"
         "listKind" = "ServiceMonitorList"
         "plural"   = "servicemonitors"
+        "shortNames" = [
+          "smon",
+        ]
         "singular" = "servicemonitor"
       }
       "scope" = "Namespaced"
@@ -163,7 +166,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                             "type"        = "boolean"
                           }
                           "interval" = {
-                            "description" = "Interval at which metrics should be scraped"
+                            "description" = "Interval at which metrics should be scraped If not specified Prometheus' global scrape interval is used."
+                            "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                             "type"        = "string"
                           }
                           "metricRelabelings" = {
@@ -400,7 +404,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                             "type"        = "string"
                           }
                           "scrapeTimeout" = {
-                            "description" = "Timeout after which the scrape is ended"
+                            "description" = "Timeout after which the scrape is ended If not specified, the Prometheus global scrape timeout is used unless it is less than `Interval` in which the latter is used."
+                            "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                             "type"        = "string"
                           }
                           "targetPort" = {

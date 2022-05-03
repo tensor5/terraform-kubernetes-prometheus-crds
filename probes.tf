@@ -4,7 +4,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
     "kind"       = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.6.2"
+        "controller-gen.kubebuilder.io/version" = "v0.8.0"
       }
       "name" = "probes.monitoring.coreos.com"
     }
@@ -17,6 +17,9 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
         "kind"     = "Probe"
         "listKind" = "ProbeList"
         "plural"   = "probes"
+        "shortNames" = [
+          "prb",
+        ]
         "singular" = "probe"
       }
       "scope" = "Namespaced"
@@ -143,6 +146,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                     }
                     "interval" = {
                       "description" = "Interval at which targets are probed using the configured prober. If not specified Prometheus' global scrape interval is used."
+                      "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                       "type"        = "string"
                     }
                     "jobName" = {
@@ -352,7 +356,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                       "type"        = "integer"
                     }
                     "scrapeTimeout" = {
-                      "description" = "Timeout for scraping metrics from the Prometheus exporter."
+                      "description" = "Timeout for scraping metrics from the Prometheus exporter. If not specified, the Prometheus global scrape interval is used."
+                      "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
                       "type"        = "string"
                     }
                     "targetLimit" = {
