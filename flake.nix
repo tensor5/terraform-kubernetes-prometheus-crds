@@ -14,6 +14,7 @@
           packages = [
             pkgs.cocogitto
             pkgs.curl
+            pkgs.gh
             pkgs.shellcheck
             pkgs.terraform
             pkgs.tfk8s

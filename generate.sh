@@ -4,7 +4,7 @@ set -eo pipefail
 
 version=$1
 
-echo "Generating CRDs for Prometheus operator v$version..."
+echo "Generating CRDs for Prometheus operator $version..."
 
 crds=(
     "alertmanagers"
@@ -17,7 +17,7 @@ crds=(
     "thanosrulers"
 )
 
-baseUrl="https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v$version/example/prometheus-operator-crd"
+baseUrl="https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/$version/example/prometheus-operator-crd"
 
 for crd in "${crds[@]}"; do
     echo "    $crd"
@@ -28,4 +28,4 @@ done
 echo "Formatting..."
 terraform fmt -list=false
 
-echo "$1" > PROMETHEUS_VERSION
+echo "$version" > PROMETHEUS_VERSION
