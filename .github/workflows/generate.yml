@@ -1,0 +1,41 @@
+name: Generate Terraform resources
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+    inputs:
+      operator-version:
+        default: ""
+        description: "Git ref of Prometheus Operator to use for generating resources"
+        required: false
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - id: get-latest-release
+        name: Get latest release of Prometheus Operator
+        run: echo "::set-output name=version::${VERSION:-$(gh release view -R prometheus-operator/prometheus-operator --json tagName -q .tagName)}"
+        env:
+          VERSION: ${{ inputs.operator-version }}
+      - name: Generate
+        run: ./generate.sh ${{ steps.get-latest-release.outputs.version }}
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          fingerprint: ${{ secrets.GPG_FINGERPRINT }}
+          git-commit-gpgsign: true
+          git-user-signingkey: true
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          branch: create-pull-request/upgrade-operator
+          commit-message: "feat: upgrade to Prometheus Operator ${{ steps.get-latest-release.outputs.version }}"
+          delete-branch: true
+          title: "feat: upgrade to Prometheus Operator ${{ steps.get-latest-release.outputs.version }}"
+          token: ${{ secrets.CREATE_PULL_REQUEST_TOKEN }}
