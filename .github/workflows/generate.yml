@@ -21,8 +21,14 @@ jobs:
         run: echo "::set-output name=version::${VERSION:-$(gh release view -R prometheus-operator/prometheus-operator --json tagName -q .tagName)}"
         env:
           VERSION: ${{ inputs.operator-version }}
+      - uses: nixbuild/nix-quick-install-action@v17
+        with:
+          nix_conf: experimental-features = nix-command flakes
+          nix_on_tmpfs: true
       - name: Generate
-        run: ./generate.sh ${{ steps.get-latest-release.outputs.version }}
+        run: |
+          nix develop
+          ./generate.sh ${{ steps.get-latest-release.outputs.version }}
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5
         with:
