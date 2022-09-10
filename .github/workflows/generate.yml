@@ -39,7 +39,7 @@ jobs:
         uses: peter-evans/create-pull-request@v4
         with:
           branch: create-pull-request/upgrade-operator
-          commit-message: "feat: upgrade to Prometheus Operator ${{ steps.get-latest-release.outputs.version }}"
+          commit-message: "feat: upgrade Prometheus Operator to ${{ steps.get-latest-release.outputs.version }}"
           delete-branch: true
-          title: "feat: upgrade to Prometheus Operator ${{ steps.get-latest-release.outputs.version }}"
+          title: "feat: upgrade Prometheus Operator to ${{ steps.get-latest-release.outputs.version }}"
           token: ${{ secrets.CREATE_PULL_REQUEST_TOKEN }}
