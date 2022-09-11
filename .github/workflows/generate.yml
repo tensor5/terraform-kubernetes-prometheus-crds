@@ -20,6 +20,7 @@ jobs:
         name: Get latest release of Prometheus Operator
         run: echo "::set-output name=version::${VERSION:-$(gh release view -R prometheus-operator/prometheus-operator --json tagName -q .tagName)}"
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ inputs.operator-version }}
       - uses: nixbuild/nix-quick-install-action@v17
         with:
