@@ -4,7 +4,7 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
     "kind"       = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.8.0"
+        "controller-gen.kubebuilder.io/version" = "v0.9.2"
       }
       "name" = "servicemonitors.monitoring.coreos.com"
     }
@@ -71,7 +71,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                               "type" = {
                                 "description" = "Set the authentication type. Defaults to Bearer, Basic will cause an error"
@@ -102,7 +103,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                               "username" = {
                                 "description" = "The secret in the service monitor namespace that contains the username for authentication."
@@ -123,7 +125,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                             }
                             "type" = "object"
@@ -151,7 +154,12 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                             "required" = [
                               "key",
                             ]
-                            "type" = "object"
+                            "type"                  = "object"
+                            "x-kubernetes-map-type" = "atomic"
+                          }
+                          "enableHttp2" = {
+                            "description" = "Whether to enable HTTP2."
+                            "type"        = "boolean"
                           }
                           "followRedirects" = {
                             "description" = "FollowRedirects configures whether scrape requests follow HTTP 3xx redirects."
@@ -177,15 +185,26 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                               "properties" = {
                                 "action" = {
                                   "default"     = "replace"
-                                  "description" = "Action to perform based on regex matching. Default is 'replace'"
+                                  "description" = "Action to perform based on regex matching. Default is 'replace'. uppercase and lowercase actions require Prometheus >= 2.36."
                                   "enum" = [
                                     "replace",
+                                    "Replace",
                                     "keep",
+                                    "Keep",
                                     "drop",
+                                    "Drop",
                                     "hashmod",
+                                    "HashMod",
                                     "labelmap",
+                                    "LabelMap",
                                     "labeldrop",
+                                    "LabelDrop",
                                     "labelkeep",
+                                    "LabelKeep",
+                                    "lowercase",
+                                    "Lowercase",
+                                    "uppercase",
+                                    "Uppercase",
                                   ]
                                   "type" = "string"
                                 }
@@ -249,7 +268,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                   "secret" = {
                                     "description" = "Secret containing data to use for the targets."
@@ -270,7 +290,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                 }
                                 "type" = "object"
@@ -294,7 +315,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                               "endpointParams" = {
                                 "additionalProperties" = {
@@ -334,7 +356,7 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                             "type"        = "object"
                           }
                           "path" = {
-                            "description" = "HTTP path to scrape for metrics."
+                            "description" = "HTTP path to scrape for metrics. If empty, Prometheus uses the default value (e.g. `/metrics`)."
                             "type"        = "string"
                           }
                           "port" = {
@@ -352,15 +374,26 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                               "properties" = {
                                 "action" = {
                                   "default"     = "replace"
-                                  "description" = "Action to perform based on regex matching. Default is 'replace'"
+                                  "description" = "Action to perform based on regex matching. Default is 'replace'. uppercase and lowercase actions require Prometheus >= 2.36."
                                   "enum" = [
                                     "replace",
+                                    "Replace",
                                     "keep",
+                                    "Keep",
                                     "drop",
+                                    "Drop",
                                     "hashmod",
+                                    "HashMod",
                                     "labelmap",
+                                    "LabelMap",
                                     "labeldrop",
+                                    "LabelDrop",
                                     "labelkeep",
+                                    "LabelKeep",
+                                    "lowercase",
+                                    "Lowercase",
+                                    "uppercase",
+                                    "Uppercase",
                                   ]
                                   "type" = "string"
                                 }
@@ -445,7 +478,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                   "secret" = {
                                     "description" = "Secret containing data to use for the targets."
@@ -466,7 +500,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                 }
                                 "type" = "object"
@@ -497,7 +532,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                   "secret" = {
                                     "description" = "Secret containing data to use for the targets."
@@ -518,7 +554,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                 }
                                 "type" = "object"
@@ -554,7 +591,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                               "serverName" = {
                                 "description" = "Used to verify the hostname for the targets."
@@ -570,8 +608,9 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                     }
                     "jobLabel" = {
                       "description" = <<-EOT
-                      Chooses the label of the Kubernetes `Endpoints`. Its value will be used for the `job`-label's value of the created metrics. 
-                       Default & fallback value: the name of the respective Kubernetes `Endpoint`.
+                      JobLabel selects the label from the associated Kubernetes service which will be used as the `job` label for all metrics. 
+                       For example: If in `ServiceMonitor.spec.jobLabel: foo` and in `Service.metadata.labels.foo: bar`, then the `job="bar"` label is added to all metrics. 
+                       If the value of this field is empty or if the label doesn't exist for the given Service, the `job` label of the metrics defaults to the name of the Kubernetes Service.
                       EOT
                       "type"        = "string"
                     }
@@ -659,7 +698,8 @@ resource "kubernetes_manifest" "customresourcedefinition_servicemonitors_monitor
                           "type"        = "object"
                         }
                       }
-                      "type" = "object"
+                      "type"                  = "object"
+                      "x-kubernetes-map-type" = "atomic"
                     }
                     "targetLabels" = {
                       "description" = "TargetLabels transfers labels from the Kubernetes `Service` onto the created metrics."

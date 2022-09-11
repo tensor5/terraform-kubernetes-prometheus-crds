@@ -4,7 +4,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
     "kind"       = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.8.0"
+        "controller-gen.kubebuilder.io/version" = "v0.9.2"
       }
       "name" = "probes.monitoring.coreos.com"
     }
@@ -66,7 +66,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                           "required" = [
                             "key",
                           ]
-                          "type" = "object"
+                          "type"                  = "object"
+                          "x-kubernetes-map-type" = "atomic"
                         }
                         "type" = {
                           "description" = "Set the authentication type. Defaults to Bearer, Basic will cause an error"
@@ -97,7 +98,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                           "required" = [
                             "key",
                           ]
-                          "type" = "object"
+                          "type"                  = "object"
+                          "x-kubernetes-map-type" = "atomic"
                         }
                         "username" = {
                           "description" = "The secret in the service monitor namespace that contains the username for authentication."
@@ -118,7 +120,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                           "required" = [
                             "key",
                           ]
-                          "type" = "object"
+                          "type"                  = "object"
+                          "x-kubernetes-map-type" = "atomic"
                         }
                       }
                       "type" = "object"
@@ -142,7 +145,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                       "required" = [
                         "key",
                       ]
-                      "type" = "object"
+                      "type"                  = "object"
+                      "x-kubernetes-map-type" = "atomic"
                     }
                     "interval" = {
                       "description" = "Interval at which targets are probed using the configured prober. If not specified Prometheus' global scrape interval is used."
@@ -175,15 +179,26 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                         "properties" = {
                           "action" = {
                             "default"     = "replace"
-                            "description" = "Action to perform based on regex matching. Default is 'replace'"
+                            "description" = "Action to perform based on regex matching. Default is 'replace'. uppercase and lowercase actions require Prometheus >= 2.36."
                             "enum" = [
                               "replace",
+                              "Replace",
                               "keep",
+                              "Keep",
                               "drop",
+                              "Drop",
                               "hashmod",
+                              "HashMod",
                               "labelmap",
+                              "LabelMap",
                               "labeldrop",
+                              "LabelDrop",
                               "labelkeep",
+                              "LabelKeep",
+                              "lowercase",
+                              "Lowercase",
+                              "uppercase",
+                              "Uppercase",
                             ]
                             "type" = "string"
                           }
@@ -251,7 +266,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "required" = [
                                 "key",
                               ]
-                              "type" = "object"
+                              "type"                  = "object"
+                              "x-kubernetes-map-type" = "atomic"
                             }
                             "secret" = {
                               "description" = "Secret containing data to use for the targets."
@@ -272,7 +288,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "required" = [
                                 "key",
                               ]
-                              "type" = "object"
+                              "type"                  = "object"
+                              "x-kubernetes-map-type" = "atomic"
                             }
                           }
                           "type" = "object"
@@ -296,7 +313,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                           "required" = [
                             "key",
                           ]
-                          "type" = "object"
+                          "type"                  = "object"
+                          "x-kubernetes-map-type" = "atomic"
                         }
                         "endpointParams" = {
                           "additionalProperties" = {
@@ -329,6 +347,7 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                       "description" = "Specification for the prober to use for probing targets. The prober.URL parameter is required. Targets cannot be probed if left empty."
                       "properties" = {
                         "path" = {
+                          "default"     = "/probe"
                           "description" = "Path to collect metrics from. Defaults to `/probe`."
                           "type"        = "string"
                         }
@@ -395,15 +414,26 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                                 "properties" = {
                                   "action" = {
                                     "default"     = "replace"
-                                    "description" = "Action to perform based on regex matching. Default is 'replace'"
+                                    "description" = "Action to perform based on regex matching. Default is 'replace'. uppercase and lowercase actions require Prometheus >= 2.36."
                                     "enum" = [
                                       "replace",
+                                      "Replace",
                                       "keep",
+                                      "Keep",
                                       "drop",
+                                      "Drop",
                                       "hashmod",
+                                      "HashMod",
                                       "labelmap",
+                                      "LabelMap",
                                       "labeldrop",
+                                      "LabelDrop",
                                       "labelkeep",
+                                      "LabelKeep",
+                                      "lowercase",
+                                      "Lowercase",
+                                      "uppercase",
+                                      "Uppercase",
                                     ]
                                     "type" = "string"
                                   }
@@ -482,7 +512,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                                   "type"        = "object"
                                 }
                               }
-                              "type" = "object"
+                              "type"                  = "object"
+                              "x-kubernetes-map-type" = "atomic"
                             }
                           }
                           "type" = "object"
@@ -504,15 +535,26 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                                 "properties" = {
                                   "action" = {
                                     "default"     = "replace"
-                                    "description" = "Action to perform based on regex matching. Default is 'replace'"
+                                    "description" = "Action to perform based on regex matching. Default is 'replace'. uppercase and lowercase actions require Prometheus >= 2.36."
                                     "enum" = [
                                       "replace",
+                                      "Replace",
                                       "keep",
+                                      "Keep",
                                       "drop",
+                                      "Drop",
                                       "hashmod",
+                                      "HashMod",
                                       "labelmap",
+                                      "LabelMap",
                                       "labeldrop",
+                                      "LabelDrop",
                                       "labelkeep",
+                                      "LabelKeep",
+                                      "lowercase",
+                                      "Lowercase",
+                                      "uppercase",
+                                      "Uppercase",
                                     ]
                                     "type" = "string"
                                   }
@@ -589,7 +631,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "required" = [
                                 "key",
                               ]
-                              "type" = "object"
+                              "type"                  = "object"
+                              "x-kubernetes-map-type" = "atomic"
                             }
                             "secret" = {
                               "description" = "Secret containing data to use for the targets."
@@ -610,7 +653,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "required" = [
                                 "key",
                               ]
-                              "type" = "object"
+                              "type"                  = "object"
+                              "x-kubernetes-map-type" = "atomic"
                             }
                           }
                           "type" = "object"
@@ -637,7 +681,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "required" = [
                                 "key",
                               ]
-                              "type" = "object"
+                              "type"                  = "object"
+                              "x-kubernetes-map-type" = "atomic"
                             }
                             "secret" = {
                               "description" = "Secret containing data to use for the targets."
@@ -658,7 +703,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                               "required" = [
                                 "key",
                               ]
-                              "type" = "object"
+                              "type"                  = "object"
+                              "x-kubernetes-map-type" = "atomic"
                             }
                           }
                           "type" = "object"
@@ -686,7 +732,8 @@ resource "kubernetes_manifest" "customresourcedefinition_probes_monitoring_coreo
                           "required" = [
                             "key",
                           ]
-                          "type" = "object"
+                          "type"                  = "object"
+                          "x-kubernetes-map-type" = "atomic"
                         }
                         "serverName" = {
                           "description" = "Used to verify the hostname for the targets."

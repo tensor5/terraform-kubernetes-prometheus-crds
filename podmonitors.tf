@@ -4,7 +4,7 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
     "kind"       = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.8.0"
+        "controller-gen.kubebuilder.io/version" = "v0.9.2"
       }
       "name" = "podmonitors.monitoring.coreos.com"
     }
@@ -44,6 +44,16 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                 "spec" = {
                   "description" = "Specification of desired Pod selection for target discovery by Prometheus."
                   "properties" = {
+                    "attachMetadata" = {
+                      "description" = "Attaches node metadata to discovered targets. Only valid for role: pod. Only valid in Prometheus versions 2.35.0 and newer."
+                      "properties" = {
+                        "node" = {
+                          "description" = "When set to true, Prometheus must have permissions to get Nodes."
+                          "type"        = "boolean"
+                        }
+                      }
+                      "type" = "object"
+                    }
                     "jobLabel" = {
                       "description" = "The label to use to retrieve the job name from."
                       "type"        = "string"
@@ -107,7 +117,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                               "type" = {
                                 "description" = "Set the authentication type. Defaults to Bearer, Basic will cause an error"
@@ -138,7 +149,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                               "username" = {
                                 "description" = "The secret in the service monitor namespace that contains the username for authentication."
@@ -159,7 +171,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                             }
                             "type" = "object"
@@ -183,7 +196,12 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                             "required" = [
                               "key",
                             ]
-                            "type" = "object"
+                            "type"                  = "object"
+                            "x-kubernetes-map-type" = "atomic"
+                          }
+                          "enableHttp2" = {
+                            "description" = "Whether to enable HTTP2."
+                            "type"        = "boolean"
                           }
                           "followRedirects" = {
                             "description" = "FollowRedirects configures whether scrape requests follow HTTP 3xx redirects."
@@ -209,15 +227,26 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                               "properties" = {
                                 "action" = {
                                   "default"     = "replace"
-                                  "description" = "Action to perform based on regex matching. Default is 'replace'"
+                                  "description" = "Action to perform based on regex matching. Default is 'replace'. uppercase and lowercase actions require Prometheus >= 2.36."
                                   "enum" = [
                                     "replace",
+                                    "Replace",
                                     "keep",
+                                    "Keep",
                                     "drop",
+                                    "Drop",
                                     "hashmod",
+                                    "HashMod",
                                     "labelmap",
+                                    "LabelMap",
                                     "labeldrop",
+                                    "LabelDrop",
                                     "labelkeep",
+                                    "LabelKeep",
+                                    "lowercase",
+                                    "Lowercase",
+                                    "uppercase",
+                                    "Uppercase",
                                   ]
                                   "type" = "string"
                                 }
@@ -281,7 +310,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                   "secret" = {
                                     "description" = "Secret containing data to use for the targets."
@@ -302,7 +332,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                 }
                                 "type" = "object"
@@ -326,7 +357,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                               "endpointParams" = {
                                 "additionalProperties" = {
@@ -366,7 +398,7 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                             "type"        = "object"
                           }
                           "path" = {
-                            "description" = "HTTP path to scrape for metrics."
+                            "description" = "HTTP path to scrape for metrics. If empty, Prometheus uses the default value (e.g. `/metrics`)."
                             "type"        = "string"
                           }
                           "port" = {
@@ -384,15 +416,26 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                               "properties" = {
                                 "action" = {
                                   "default"     = "replace"
-                                  "description" = "Action to perform based on regex matching. Default is 'replace'"
+                                  "description" = "Action to perform based on regex matching. Default is 'replace'. uppercase and lowercase actions require Prometheus >= 2.36."
                                   "enum" = [
                                     "replace",
+                                    "Replace",
                                     "keep",
+                                    "Keep",
                                     "drop",
+                                    "Drop",
                                     "hashmod",
+                                    "HashMod",
                                     "labelmap",
+                                    "LabelMap",
                                     "labeldrop",
+                                    "LabelDrop",
                                     "labelkeep",
+                                    "LabelKeep",
+                                    "lowercase",
+                                    "Lowercase",
+                                    "uppercase",
+                                    "Uppercase",
                                   ]
                                   "type" = "string"
                                 }
@@ -477,7 +520,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                   "secret" = {
                                     "description" = "Secret containing data to use for the targets."
@@ -498,7 +542,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                 }
                                 "type" = "object"
@@ -525,7 +570,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                   "secret" = {
                                     "description" = "Secret containing data to use for the targets."
@@ -546,7 +592,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                     "required" = [
                                       "key",
                                     ]
-                                    "type" = "object"
+                                    "type"                  = "object"
+                                    "x-kubernetes-map-type" = "atomic"
                                   }
                                 }
                                 "type" = "object"
@@ -574,7 +621,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                                 "required" = [
                                   "key",
                                 ]
-                                "type" = "object"
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
                               }
                               "serverName" = {
                                 "description" = "Used to verify the hostname for the targets."
@@ -640,7 +688,8 @@ resource "kubernetes_manifest" "customresourcedefinition_podmonitors_monitoring_
                           "type"        = "object"
                         }
                       }
-                      "type" = "object"
+                      "type"                  = "object"
+                      "x-kubernetes-map-type" = "atomic"
                     }
                     "targetLimit" = {
                       "description" = "TargetLimit defines a limit on the number of scraped targets that will be accepted."
