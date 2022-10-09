@@ -33,15 +33,38 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
               "type"        = "string"
             },
             {
-              "description" = "The desired replicas number of Prometheuses"
+              "description" = "The number of desired replicas"
               "jsonPath"    = ".spec.replicas"
-              "name"        = "Replicas"
+              "name"        = "Desired"
               "type"        = "integer"
+            },
+            {
+              "description" = "The number of ready replicas"
+              "jsonPath"    = ".status.availableReplicas"
+              "name"        = "Ready"
+              "type"        = "integer"
+            },
+            {
+              "jsonPath" = ".status.conditions[?(@.type == 'Reconciled')].status"
+              "name"     = "Reconciled"
+              "type"     = "string"
+            },
+            {
+              "jsonPath" = ".status.conditions[?(@.type == 'Available')].status"
+              "name"     = "Available"
+              "type"     = "string"
             },
             {
               "jsonPath" = ".metadata.creationTimestamp"
               "name"     = "Age"
               "type"     = "date"
+            },
+            {
+              "description" = "Whether the resource reconciliation is paused or not"
+              "jsonPath"    = ".status.paused"
+              "name"        = "Paused"
+              "priority"    = 1
+              "type"        = "boolean"
             },
           ]
           "name" = "v1"
@@ -108,7 +131,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "x-kubernetes-map-type" = "atomic"
                     }
                     "additionalArgs" = {
-                      "description" = "AdditionalArgs allows setting additional arguments for the Prometheus container. It is intended for e.g. activating hidden flags which are not supported by the dedicated configuration options yet. The arguments are passed as-is to the Prometheus container which may cause issues if they are invalid or not supporeted by the given Prometheus version. In case of an argument conflict (e.g. an argument which is already set by the operator itself) or when providing an invalid argument the reconciliation will fail and an error will be logged."
+                      "description" = "AdditionalArgs allows setting additional arguments for the Prometheus container. It is intended for e.g. activating hidden flags which are not supported by the dedicated configuration options yet. The arguments are passed as-is to the Prometheus container which may cause issues if they are invalid or not supported by the given Prometheus version. In case of an argument conflict (e.g. an argument which is already set by the operator itself) or when providing an invalid argument the reconciliation will fail and an error will be logged."
                       "items" = {
                         "description" = "Argument as part of the AdditionalArgs list."
                         "properties" = {
@@ -1326,7 +1349,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type"        = "string"
                     }
                     "configMaps" = {
-                      "description" = "ConfigMaps is a list of ConfigMaps in the same namespace as the Prometheus object, which shall be mounted into the Prometheus Pods. The ConfigMaps are mounted into /etc/prometheus/configmaps/<configmap-name>."
+                      "description" = "ConfigMaps is a list of ConfigMaps in the same namespace as the Prometheus object, which shall be mounted into the Prometheus Pods. Each ConfigMap is added to the StatefulSet definition as a volume named `configmap-<configmap-name>`. The ConfigMaps are mounted into /etc/prometheus/configmaps/<configmap-name> in the 'prometheus' container."
                       "items" = {
                         "type" = "string"
                       }
@@ -2628,6 +2651,10 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                         "ip",
                       ]
                       "x-kubernetes-list-type" = "map"
+                    }
+                    "hostNetwork" = {
+                      "description" = "Use the host's network namespace if true. Make sure to understand the security implications if you want to enable it. When hostNetwork is enabled, this will set dnsPolicy to ClusterFirstWithHostNet automatically."
+                      "type"        = "boolean"
                     }
                     "ignoreNamespaceSelectors" = {
                       "description" = "IgnoreNamespaceSelectors if set to true will ignore NamespaceSelector settings from all PodMonitor, ServiceMonitor and Probe objects. They will only discover endpoints within the namespace of the PodMonitor, ServiceMonitor and Probe objects. Defaults to false."
@@ -5245,7 +5272,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       "type"        = "string"
                     }
                     "secrets" = {
-                      "description" = "Secrets is a list of Secrets in the same namespace as the Prometheus object, which shall be mounted into the Prometheus Pods. The Secrets are mounted into /etc/prometheus/secrets/<secret-name>."
+                      "description" = "Secrets is a list of Secrets in the same namespace as the Prometheus object, which shall be mounted into the Prometheus Pods. Each Secret is added to the StatefulSet definition as a volume named `secret-<secret-name>`. The Secrets are mounted into /etc/prometheus/secrets/<secret-name> in the 'prometheus' container."
                       "items" = {
                         "type" = "string"
                       }
@@ -5980,7 +6007,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                       EOT
                       "properties" = {
                         "additionalArgs" = {
-                          "description" = "AdditionalArgs allows setting additional arguments for the Thanos container. The arguments are passed as-is to the Thanos container which may cause issues if they are invalid or not supporeted the given Thanos version. In case of an argument conflict (e.g. an argument which is already set by the operator itself) or when providing an invalid argument the reconciliation will fail and an error will be logged."
+                          "description" = "AdditionalArgs allows setting additional arguments for the Thanos container. The arguments are passed as-is to the Thanos container which may cause issues if they are invalid or not supported the given Thanos version. In case of an argument conflict (e.g. an argument which is already set by the operator itself) or when providing an invalid argument the reconciliation will fail and an error will be logged."
                           "items" = {
                             "description" = "Argument as part of the AdditionalArgs list."
                             "properties" = {
@@ -6005,8 +6032,12 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                           "description" = "Thanos base image if other than default. Deprecated: use 'image' instead"
                           "type"        = "string"
                         }
+                        "grpcListenLocal" = {
+                          "description" = "If true, the Thanos sidecar listens on the loopback interface for the gRPC endpoints. It has no effect if `listenLocal` is true."
+                          "type"        = "boolean"
+                        }
                         "grpcServerTlsConfig" = {
-                          "description" = "GRPCServerTLSConfig configures the gRPC server from which Thanos Querier reads recorded rule data. Note: Currently only the CAFile, CertFile, and KeyFile fields are supported. Maps to the '--grpc-server-tls-*' CLI args."
+                          "description" = "GRPCServerTLSConfig configures the TLS parameters for the gRPC server providing the StoreAPI. Note: Currently only the CAFile, CertFile, and KeyFile fields are supported. Maps to the '--grpc-server-tls-*' CLI args."
                           "properties" = {
                             "ca" = {
                               "description" = "Struct containing the CA cert to use for the targets."
@@ -6153,12 +6184,16 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                           }
                           "type" = "object"
                         }
+                        "httpListenLocal" = {
+                          "description" = "If true, the Thanos sidecar listens on the loopback interface for the HTTP endpoints. It has no effect if `listenLocal` is true."
+                          "type"        = "boolean"
+                        }
                         "image" = {
                           "description" = "Image if specified has precedence over baseImage, tag and sha combinations. Specifying the version is still necessary to ensure the Prometheus Operator knows what version of Thanos is being configured."
                           "type"        = "string"
                         }
                         "listenLocal" = {
-                          "description" = "ListenLocal makes the Thanos sidecar listen on loopback, so that it does not bind against the Pod IP."
+                          "description" = "If true, the Thanos sidecar listens on the loopback interface for the HTTP and gRPC endpoints. It takes precedence over `grpcListenLocal` and `httpListenLocal`. Deprecated: use `grpcListenLocal` and `httpListenLocal` instead."
                           "type"        = "boolean"
                         }
                         "logFormat" = {
@@ -6465,6 +6500,17 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                         "type" = "object"
                       }
                       "type" = "array"
+                    }
+                    "tsdb" = {
+                      "description" = "Defines the runtime reloadable configuration of the timeseries database (TSDB)."
+                      "properties" = {
+                        "outOfOrderTimeWindow" = {
+                          "description" = "Configures how old an out-of-order/out-of-bounds sample can be w.r.t. the TSDB max time. An out-of-order/out-of-bounds sample is ingested into the TSDB as long as the timestamp of the sample is >= (TSDB.MaxTime - outOfOrderTimeWindow). Out of order ingestion is an experimental feature and requires Prometheus >= v2.39.0."
+                          "pattern"     = "^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$"
+                          "type"        = "string"
+                        }
+                      }
+                      "type" = "object"
                     }
                     "version" = {
                       "description" = "Version of Prometheus to be deployed."
@@ -8067,6 +8113,11 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                           "message" = {
                             "description" = "Human-readable message indicating details for the condition's last transition."
                             "type"        = "string"
+                          }
+                          "observedGeneration" = {
+                            "description" = "ObservedGeneration represents the .metadata.generation that the condition was set based upon. For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date with respect to the current state of the instance."
+                            "format"      = "int64"
+                            "type"        = "integer"
                           }
                           "reason" = {
                             "description" = "Reason for the condition's last transition."

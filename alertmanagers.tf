@@ -33,7 +33,7 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
               "type"        = "string"
             },
             {
-              "description" = "The desired replicas number of Alertmanagers"
+              "description" = "The number of desired replicas"
               "jsonPath"    = ".spec.replicas"
               "name"        = "Replicas"
               "type"        = "integer"
@@ -42,6 +42,13 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
               "jsonPath" = ".metadata.creationTimestamp"
               "name"     = "Age"
               "type"     = "date"
+            },
+            {
+              "description" = "Whether the resource reconciliation is paused or not"
+              "jsonPath"    = ".status.paused"
+              "name"        = "Paused"
+              "priority"    = 1
+              "type"        = "boolean"
             },
           ]
           "name" = "v1"
@@ -1188,6 +1195,60 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
                           "minLength"   = 1
                           "type"        = "string"
                         }
+                        "templates" = {
+                          "description" = "Custom notification templates."
+                          "items" = {
+                            "description" = "SecretOrConfigMap allows to specify data as a Secret or ConfigMap. Fields are mutually exclusive."
+                            "properties" = {
+                              "configMap" = {
+                                "description" = "ConfigMap containing data to use for the targets."
+                                "properties" = {
+                                  "key" = {
+                                    "description" = "The key to select."
+                                    "type"        = "string"
+                                  }
+                                  "name" = {
+                                    "description" = "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?"
+                                    "type"        = "string"
+                                  }
+                                  "optional" = {
+                                    "description" = "Specify whether the ConfigMap or its key must be defined"
+                                    "type"        = "boolean"
+                                  }
+                                }
+                                "required" = [
+                                  "key",
+                                ]
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
+                              }
+                              "secret" = {
+                                "description" = "Secret containing data to use for the targets."
+                                "properties" = {
+                                  "key" = {
+                                    "description" = "The key of the secret to select from.  Must be a valid secret key."
+                                    "type"        = "string"
+                                  }
+                                  "name" = {
+                                    "description" = "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?"
+                                    "type"        = "string"
+                                  }
+                                  "optional" = {
+                                    "description" = "Specify whether the Secret or its key must be defined"
+                                    "type"        = "boolean"
+                                  }
+                                }
+                                "required" = [
+                                  "key",
+                                ]
+                                "type"                  = "object"
+                                "x-kubernetes-map-type" = "atomic"
+                              }
+                            }
+                            "type" = "object"
+                          }
+                          "type" = "array"
+                        }
                       }
                       "type" = "object"
                     }
@@ -1215,7 +1276,7 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
                       "type"        = "string"
                     }
                     "configMaps" = {
-                      "description" = "ConfigMaps is a list of ConfigMaps in the same namespace as the Alertmanager object, which shall be mounted into the Alertmanager Pods. The ConfigMaps are mounted into /etc/alertmanager/configmaps/<configmap-name>."
+                      "description" = "ConfigMaps is a list of ConfigMaps in the same namespace as the Alertmanager object, which shall be mounted into the Alertmanager Pods. Each ConfigMap is added to the StatefulSet definition as a volume named `configmap-<configmap-name>`. The ConfigMaps are mounted into `/etc/alertmanager/configmaps/<configmap-name>` in the 'alertmanager' container."
                       "items" = {
                         "type" = "string"
                       }
@@ -1223,7 +1284,7 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
                     }
                     "configSecret" = {
                       "description" = <<-EOT
-                      ConfigSecret is the name of a Kubernetes Secret in the same namespace as the Alertmanager object, which contains the configuration for this Alertmanager instance. If empty, it defaults to 'alertmanager-<alertmanager-name>'. 
+                      ConfigSecret is the name of a Kubernetes Secret in the same namespace as the Alertmanager object, which contains the configuration for this Alertmanager instance. If empty, it defaults to `alertmanager-<alertmanager-name>`. 
                        The Alertmanager configuration should be available under the `alertmanager.yaml` key. Additional keys from the original secret are copied to the generated secret. 
                        If either the secret or the `alertmanager.yaml` key is missing, the operator provisions an Alertmanager configuration with one empty receiver (effectively dropping alert notifications).
                       EOT
@@ -3695,7 +3756,7 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
                       "type"        = "string"
                     }
                     "secrets" = {
-                      "description" = "Secrets is a list of Secrets in the same namespace as the Alertmanager object, which shall be mounted into the Alertmanager Pods. The Secrets are mounted into /etc/alertmanager/secrets/<secret-name>."
+                      "description" = "Secrets is a list of Secrets in the same namespace as the Alertmanager object, which shall be mounted into the Alertmanager Pods. Each Secret is added to the StatefulSet definition as a volume named `secret-<secret-name>`. The Secrets are mounted into `/etc/alertmanager/secrets/<secret-name>` in the 'alertmanager' container."
                       "items" = {
                         "type" = "string"
                       }
