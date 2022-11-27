@@ -1988,7 +1988,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                       "description" = "GRPCServerTLSConfig configures the gRPC server from which Thanos Querier reads recorded rule data. Note: Currently only the CAFile, CertFile, and KeyFile fields are supported. Maps to the '--grpc-server-tls-*' CLI args."
                       "properties" = {
                         "ca" = {
-                          "description" = "Struct containing the CA cert to use for the targets."
+                          "description" = "Certificate authority used when verifying server certificates."
                           "properties" = {
                             "configMap" = {
                               "description" = "ConfigMap containing data to use for the targets."
@@ -2042,7 +2042,7 @@ resource "kubernetes_manifest" "customresourcedefinition_thanosrulers_monitoring
                           "type"        = "string"
                         }
                         "cert" = {
-                          "description" = "Struct containing the client cert file for the targets."
+                          "description" = "Client certificate to present when doing client-authentication."
                           "properties" = {
                             "configMap" = {
                               "description" = "ConfigMap containing data to use for the targets."

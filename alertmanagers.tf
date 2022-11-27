@@ -734,6 +734,21 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
                       }
                       "type" = "object"
                     }
+                    "alertmanagerConfigMatcherStrategy" = {
+                      "description" = "The AlertmanagerConfigMatcherStrategy defines how AlertmanagerConfig objects match the alerts. In the future more options may be added."
+                      "properties" = {
+                        "type" = {
+                          "default"     = "OnNamespace"
+                          "description" = "If set to `OnNamespace`, the operator injects a label matcher matching the namespace of the AlertmanagerConfig object for all its routes and inhibition rules. `None` will not add any additional matchers other than the ones specified in the AlertmanagerConfig. Default is `OnNamespace`."
+                          "enum" = [
+                            "OnNamespace",
+                            "None",
+                          ]
+                          "type" = "string"
+                        }
+                      }
+                      "type" = "object"
+                    }
                     "alertmanagerConfigNamespaceSelector" = {
                       "description" = "Namespaces to be selected for AlertmanagerConfig discovery. If nil, only check own namespace."
                       "properties" = {
@@ -1047,7 +1062,7 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
                                   "description" = "TLS configuration for the client."
                                   "properties" = {
                                     "ca" = {
-                                      "description" = "Struct containing the CA cert to use for the targets."
+                                      "description" = "Certificate authority used when verifying server certificates."
                                       "properties" = {
                                         "configMap" = {
                                           "description" = "ConfigMap containing data to use for the targets."
@@ -1097,7 +1112,7 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
                                       "type" = "object"
                                     }
                                     "cert" = {
-                                      "description" = "Struct containing the client cert file for the targets."
+                                      "description" = "Client certificate to present when doing client-authentication."
                                       "properties" = {
                                         "configMap" = {
                                           "description" = "ConfigMap containing data to use for the targets."
@@ -1285,8 +1300,8 @@ resource "kubernetes_manifest" "customresourcedefinition_alertmanagers_monitorin
                     "configSecret" = {
                       "description" = <<-EOT
                       ConfigSecret is the name of a Kubernetes Secret in the same namespace as the Alertmanager object, which contains the configuration for this Alertmanager instance. If empty, it defaults to `alertmanager-<alertmanager-name>`. 
-                       The Alertmanager configuration should be available under the `alertmanager.yaml` key. Additional keys from the original secret are copied to the generated secret. 
-                       If either the secret or the `alertmanager.yaml` key is missing, the operator provisions an Alertmanager configuration with one empty receiver (effectively dropping alert notifications).
+                       The Alertmanager configuration should be available under the `alertmanager.yaml` key. Additional keys from the original secret are copied to the generated secret and mounted into the `/etc/alertmanager/config` directory in the `alertmanager` container. 
+                       If either the secret or the `alertmanager.yaml` key is missing, the operator provisions a minimal Alertmanager configuration with one empty receiver (effectively dropping alert notifications).
                       EOT
                       "type"        = "string"
                     }

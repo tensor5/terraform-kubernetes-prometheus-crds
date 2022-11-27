@@ -879,6 +879,10 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                 "description" = "BearerTokenFile to read from filesystem to use when authenticating to Alertmanager."
                                 "type"        = "string"
                               }
+                              "enableHttp2" = {
+                                "description" = "Whether to enable HTTP2."
+                                "type"        = "boolean"
+                              }
                               "name" = {
                                 "description" = "Name of Endpoints object in Namespace."
                                 "type"        = "string"
@@ -916,7 +920,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                 "description" = "TLS Config to use for alertmanager connection."
                                 "properties" = {
                                   "ca" = {
-                                    "description" = "Struct containing the CA cert to use for the targets."
+                                    "description" = "Certificate authority used when verifying server certificates."
                                     "properties" = {
                                       "configMap" = {
                                         "description" = "ConfigMap containing data to use for the targets."
@@ -970,7 +974,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                     "type"        = "string"
                                   }
                                   "cert" = {
-                                    "description" = "Struct containing the client cert file for the targets."
+                                    "description" = "Client certificate to present when doing client-authentication."
                                     "properties" = {
                                       "configMap" = {
                                         "description" = "ConfigMap containing data to use for the targets."
@@ -1185,7 +1189,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                           "description" = "TLS Config to use for accessing apiserver."
                           "properties" = {
                             "ca" = {
-                              "description" = "Struct containing the CA cert to use for the targets."
+                              "description" = "Certificate authority used when verifying server certificates."
                               "properties" = {
                                 "configMap" = {
                                   "description" = "ConfigMap containing data to use for the targets."
@@ -1239,7 +1243,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                               "type"        = "string"
                             }
                             "cert" = {
-                              "description" = "Struct containing the client cert file for the targets."
+                              "description" = "Client certificate to present when doing client-authentication."
                               "properties" = {
                                 "configMap" = {
                                   "description" = "ConfigMap containing data to use for the targets."
@@ -4227,6 +4231,10 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "description" = "File to read bearer token for remote read."
                             "type"        = "string"
                           }
+                          "filterExternalLabels" = {
+                            "description" = "Whether to use the external labels as selectors for the remote read endpoint. Requires Prometheus v2.34.0 and above."
+                            "type"        = "boolean"
+                          }
                           "headers" = {
                             "additionalProperties" = {
                               "type" = "string"
@@ -4364,7 +4372,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "description" = "TLS Config to use for remote read."
                             "properties" = {
                               "ca" = {
-                                "description" = "Struct containing the CA cert to use for the targets."
+                                "description" = "Certificate authority used when verifying server certificates."
                                 "properties" = {
                                   "configMap" = {
                                     "description" = "ConfigMap containing data to use for the targets."
@@ -4418,7 +4426,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                 "type"        = "string"
                               }
                               "cert" = {
-                                "description" = "Struct containing the client cert file for the targets."
+                                "description" = "Client certificate to present when doing client-authentication."
                                 "properties" = {
                                   "configMap" = {
                                     "description" = "ConfigMap containing data to use for the targets."
@@ -4868,7 +4876,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                             "description" = "TLS Config to use for remote write."
                             "properties" = {
                               "ca" = {
-                                "description" = "Struct containing the CA cert to use for the targets."
+                                "description" = "Certificate authority used when verifying server certificates."
                                 "properties" = {
                                   "configMap" = {
                                     "description" = "ConfigMap containing data to use for the targets."
@@ -4922,7 +4930,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                                 "type"        = "string"
                               }
                               "cert" = {
-                                "description" = "Struct containing the client cert file for the targets."
+                                "description" = "Client certificate to present when doing client-authentication."
                                 "properties" = {
                                   "configMap" = {
                                     "description" = "ConfigMap containing data to use for the targets."
@@ -6040,7 +6048,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                           "description" = "GRPCServerTLSConfig configures the TLS parameters for the gRPC server providing the StoreAPI. Note: Currently only the CAFile, CertFile, and KeyFile fields are supported. Maps to the '--grpc-server-tls-*' CLI args."
                           "properties" = {
                             "ca" = {
-                              "description" = "Struct containing the CA cert to use for the targets."
+                              "description" = "Certificate authority used when verifying server certificates."
                               "properties" = {
                                 "configMap" = {
                                   "description" = "ConfigMap containing data to use for the targets."
@@ -6094,7 +6102,7 @@ resource "kubernetes_manifest" "customresourcedefinition_prometheuses_monitoring
                               "type"        = "string"
                             }
                             "cert" = {
-                              "description" = "Struct containing the client cert file for the targets."
+                              "description" = "Client certificate to present when doing client-authentication."
                               "properties" = {
                                 "configMap" = {
                                   "description" = "ConfigMap containing data to use for the targets."
