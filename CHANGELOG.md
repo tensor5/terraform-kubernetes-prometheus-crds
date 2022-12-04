@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.7.0](https://github.com/tensor5/terraform-kubernetes-prometheus-crds/compare/v0.6.0...v0.7.0) (2022-12-04)
+
+
+### Features
+
+* upgrade Prometheus Operator to v0.61.1 ([6010038](https://github.com/tensor5/terraform-kubernetes-prometheus-crds/commit/6010038b7944fdfe6e4ae4beaadda3eb07baee88))
+
 ## [0.6.0](https://github.com/tensor5/terraform-kubernetes-prometheus-crds/compare/v0.5.0...v0.6.0) (2022-10-09)
 
 
